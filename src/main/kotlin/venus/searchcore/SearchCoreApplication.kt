@@ -1,4 +1,4 @@
-ackage venus.searchcore
+package venus.searchcore
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
