@@ -6,6 +6,7 @@ import venus.searchcore.search.ApiQuerydslBindingsFactory
 import venus.searchcore.search.ApiQuerydslMethodArgumentResolver
 import org.springframework.beans.factory.ObjectFactory
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -19,9 +20,11 @@ import org.springframework.data.rest.webmvc.config.RootResourceInformationHandle
 import org.springframework.data.web.HateoasPageableHandlerMethodArgumentResolver
 import org.springframework.data.web.config.EnableSpringDataWebSupport
 import org.springframework.format.support.DefaultFormattingConversionService
+import venus.searchcore.search.operator.SearchOperator
 
 @Configuration
 @EnableSpringDataWebSupport
+@ConditionalOnClass(SearchOperator::class)
 class RestMvcConfig(context: ApplicationContext,
                     @Qualifier("mvcConversionService") conversionService: ObjectFactory<ConversionService>)
     : RepositoryRestMvcConfiguration(context, conversionService) {
