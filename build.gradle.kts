@@ -9,6 +9,7 @@ plugins {
 	kotlin("plugin.spring") version kotlinVersion
 	kotlin("kapt") version kotlinVersion
 	`maven-publish`
+	maven
 }
 
 group = "venus"
