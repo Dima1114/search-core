@@ -8,7 +8,7 @@ plugins {
 	kotlin("jvm") version kotlinVersion
 	kotlin("plugin.spring") version kotlinVersion
 	kotlin("kapt") version kotlinVersion
-	maven
+	`maven-publish`
 }
 
 group = "venus"
@@ -47,5 +47,17 @@ tasks.withType<KotlinCompile> {
 	kotlinOptions {
 		freeCompilerArgs = listOf("-Xjsr305=strict")
 		jvmTarget = "1.8"
+	}
+}
+
+publishing {
+	publications {
+		create<MavenPublication>("maven") {
+			groupId = "venus"
+			artifactId = "search-core"
+			version = "1.0"
+
+			from(components["java"])
+		}
 	}
 }
