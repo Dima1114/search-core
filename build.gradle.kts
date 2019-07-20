@@ -21,6 +21,11 @@ repositories {
 	jcenter()
 }
 
+artifacts {
+	archives file(getArtifactId() + ".jar")
+	archives sourcesJar
+}
+
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-data-rest")
