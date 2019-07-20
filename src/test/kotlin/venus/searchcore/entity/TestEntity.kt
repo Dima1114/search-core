@@ -1,9 +1,11 @@
 package venus.searchcore.entity
 
+import venus.searchcore.validation.Unique
 import java.time.LocalDate
 import javax.persistence.*
 
 @Entity
+@Unique(fields = ["name"], fieldsBunch = ["date", "float"], errorFields = ["float"])
 class TestEntity (
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
