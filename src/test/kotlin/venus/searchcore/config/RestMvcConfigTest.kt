@@ -1,5 +1,6 @@
 package venus.searchcore.config
 
+import com.fasterxml.jackson.databind.util.EnumResolver
 import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
@@ -8,6 +9,8 @@ import org.amshove.kluent.any
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito
@@ -16,11 +19,15 @@ import org.mockito.junit.MockitoJUnitRunner
 import org.springframework.beans.factory.ListableBeanFactory
 import org.springframework.beans.factory.ObjectFactory
 import org.springframework.context.ApplicationContext
+import org.springframework.core.ResolvableType
 import org.springframework.core.convert.ConversionService
 import org.springframework.data.querydsl.SimpleEntityPathResolver
+import org.springframework.data.rest.webmvc.json.EnumTranslator
+import org.springframework.hateoas.mediatype.MessageResolver
 import org.springframework.test.util.ReflectionTestUtils
 import venus.searchcore.search.ApiQuerydslBindingsFactory
 import venus.searchcore.search.ApiQuerydslMethodArgumentResolver
+import kotlin.reflect.KClass
 
 @RunWith(MockitoJUnitRunner::class)
 class RestMvcConfigTest {
@@ -38,11 +45,15 @@ class RestMvcConfigTest {
     @Mock
     lateinit var listableFatory: ListableBeanFactory
 
+    @Mock
+    lateinit var resolver: MessageResolver
+
     @Before
     fun setUp(){
         testSubject.afterPropertiesSet()
-        whenever(context.getBeanNamesForType(any(), any(), any())).thenReturn(arrayOf())
+        whenever(context.getBeanNamesForType(any(Class::class.java), anyBoolean(), anyBoolean())).thenReturn(arrayOf<String>())
         ReflectionTestUtils.setField(testSubject, "applicationContext", context)
+        ReflectionTestUtils.setField(testSubject, "resolver", resolver)
 
     }
 
