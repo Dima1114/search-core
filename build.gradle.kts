@@ -33,7 +33,7 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 //	kapt("com.querydsl:querydsl-apt:4.2.1:jpa")
-	implementation("com.querydsl:querydsl-jpa:4.2.1")
+	api("com.querydsl:querydsl-jpa:4.2.1")
 	implementation("org.reflections:reflections:0.9.11")
 	implementation("io.github.microutils:kotlin-logging:1.6.10")
 
