@@ -1,19 +1,21 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
 	val kotlinVersion = "1.3.61"
-	kotlin("plugin.jpa") version kotlinVersion
-//	id("org.springframework.boot") version "2.1.6.RELEASE"
-//	id("io.spring.dependency-management") version "1.0.7.RELEASE"
+	id("org.springframework.boot") version "2.2.5.RELEASE"
+	id("io.spring.dependency-management") version "1.0.9.RELEASE"
 	kotlin("jvm") version kotlinVersion
 	kotlin("plugin.spring") version kotlinVersion
+	kotlin("plugin.jpa") version kotlinVersion
 	kotlin("kapt") version kotlinVersion
+	id("java-library")
 	`maven-publish`
 	maven
 }
 
 group = "venus"
-version = "0.0.1-SNAPSHOT"
+version = "0.1"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
@@ -23,11 +25,11 @@ repositories {
 }
 
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-data-jpa:2.1.6.RELEASE")
-	implementation("org.springframework.boot:spring-boot-starter-data-rest:2.1.6.RELEASE")
-	implementation("org.springframework.boot:spring-boot-starter-web:2.1.6.RELEASE")
-	implementation("org.springframework.boot:spring-boot-starter-security:2.1.6.RELEASE")
-	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.9")
+	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation("org.springframework.boot:spring-boot-starter-data-rest")
+	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-security")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 //	kapt("com.querydsl:querydsl-apt:4.2.1:jpa")
@@ -35,7 +37,7 @@ dependencies {
 	implementation("org.reflections:reflections:0.9.11")
 	implementation("io.github.microutils:kotlin-logging:1.6.10")
 
-	testImplementation("org.springframework.boot:spring-boot-starter-test:2.1.6.RELEASE")
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("com.h2database:h2:1.4.199")
 	testImplementation("org.amshove.kluent:kluent:1.49")
 	testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0")
@@ -50,6 +52,14 @@ tasks.withType<KotlinCompile> {
 		freeCompilerArgs = listOf("-Xjsr305=strict")
 		jvmTarget = "1.8"
 	}
+}
+
+tasks.getByName<Jar>("jar") {
+	enabled = true
+}
+
+tasks.getByName<BootJar>("bootJar") {
+	enabled = false
 }
 
 publishing {
