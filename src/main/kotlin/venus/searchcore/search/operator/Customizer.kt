@@ -30,14 +30,13 @@ class Customizer(private val resolver: EntityPathResolver,
         structuredParams.forEach { (propertyPath, criteria) ->
 
             var pp: PropertyPath = getProperty(propertyPath, type) ?: return@forEach
-            val path = PathUtil.reifyPath(resolver, pp, Optional.empty())
-            var propertyName: String? = null
+            val path = reifyPath(resolver, pp, Optional.empty())
 
+            var propertyName: String? = null
             while (pp.hasNext()) {
                 propertyName = propertyName?.let { "$it." + pp.segment } ?: pp.segment
                 pp = pp.next()!!
             }
-
             val rootBuilder = PathBuilder(root.type, root.metadata)
             val builder = propertyName?.let { PathBuilder(pp.owningType.type, rootBuilder.get(it).toString()) }
                     ?: rootBuilder
