@@ -10,6 +10,7 @@ plugins {
 	kotlin("plugin.jpa") version kotlinVersion
 	kotlin("kapt") version kotlinVersion
 	id("java-library")
+	maven
 }
 
 group = "venus"
