@@ -32,7 +32,7 @@ class UniqueValidatorTest : AbstractTestMvcIntegration() {
     @Before
     fun setUp() {
         val status = transactionManager.getTransaction(DefaultTransactionDefinition(PROPAGATION_REQUIRES_NEW))
-        testEntityRepository.save(TestEntity(name = "test1", date = LocalDate.now(), float = 100F))
+        testEntityRepository.save(TestEntity(name = "test1", date = LocalDate.now(), floatValue = 100F))
         transactionManager.commit(status)
     }
 
@@ -65,14 +65,14 @@ class UniqueValidatorTest : AbstractTestMvcIntegration() {
 
         try {
             //when
-            performPost("/testEntities", """{"name": "test2", "date":"${LocalDate.now()}", "float":100}""")
+            performPost("/testEntities", """{"name": "test2", "date":"${LocalDate.now()}", "floatValue":100}""")
             assertTrue { false }
         } catch (ex: Exception) {
             //then
             val errors = getConstraints(ex.cause as ConstraintViolationException)
             errors.size `should be equal to` 1
             errors[0]["entity"] `should equal` "TestEntity"
-            errors[0]["field"] `should equal` "float"
+            errors[0]["field"] `should equal` "floatValue"
             errors[0]["defaultMessage"] `should equal` "already exists"
         }
 

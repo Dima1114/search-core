@@ -1,6 +1,5 @@
 package venus.searchcore.search
 
-import venus.searchcore.search.operator.customizeQuery
 import com.querydsl.core.types.EntityPath
 import org.springframework.data.querydsl.EntityPathResolver
 import org.springframework.data.querydsl.binding.QuerydslBindings
@@ -9,8 +8,10 @@ import org.springframework.data.querydsl.binding.QuerydslPredicate
 import org.springframework.data.util.TypeInformation
 import org.springframework.util.ConcurrentReferenceHashMap
 import org.springframework.util.MultiValueMap
+import venus.searchcore.search.operator.Customizer
 
 class ApiQuerydslBindingsFactory(entityPathResolver : EntityPathResolver,
+                                 private val customizer: Customizer,
                                  private val entityPaths : MutableMap<TypeInformation<*>, EntityPath<*>> = ConcurrentReferenceHashMap())
     : QuerydslBindingsFactory(entityPathResolver) {
 
@@ -21,7 +22,7 @@ class ApiQuerydslBindingsFactory(entityPathResolver : EntityPathResolver,
     fun customize(params: MultiValueMap<String, String>,
                   type: TypeInformation<*>,
                   bindings: QuerydslBindings) {
-        customizeQuery(params, type, bindings, verifyEntityPathPresent(type))
+        customizer.customizeQuery(params, type, bindings, verifyEntityPathPresent(type))
     }
 
     private fun verifyEntityPathPresent(candidate: TypeInformation<*>): EntityPath<*> {

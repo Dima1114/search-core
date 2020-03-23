@@ -14,6 +14,7 @@ class LocalDateTimeCustomConverter: Converter<String, LocalDateTime> {
     private fun tryParse(source: String): LocalDateTime? {
         val patterns = listOf(
                 "MM-dd-yyyy'T'HH:mm:ss.SSS","MM-dd-yyyy HH:mm:ss", "MM/dd/yyyy'T'HH:mm:ss.SSS", "MM/dd/yyyy HH:mm:ss",
+                "yyyy-MM-dd'T'HH:mm:ss",
                 "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd HH:mm:ss", "yyyy/MM/dd'T'HH:mm:ss.SSS", "yyyy/MM/dd HH:mm:ss")
         var result : LocalDateTime? = null
         patterns.forEach {

@@ -1,13 +1,8 @@
 package venus.searchcore.config
 
-import venus.searchcore.converter.LocalDateCustomConverter
-import venus.searchcore.converter.LocalDateTimeCustomConverter
-import venus.searchcore.search.ApiQuerydslBindingsFactory
-import venus.searchcore.search.ApiQuerydslMethodArgumentResolver
 import org.springframework.beans.factory.ObjectFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -21,12 +16,18 @@ import org.springframework.data.rest.webmvc.config.RootResourceInformationHandle
 import org.springframework.data.web.HateoasPageableHandlerMethodArgumentResolver
 import org.springframework.data.web.config.EnableSpringDataWebSupport
 import org.springframework.format.support.DefaultFormattingConversionService
-import venus.searchcore.search.operator.SearchOperator
+import venus.searchcore.converter.LocalDateCustomConverter
+import venus.searchcore.converter.LocalDateTimeCustomConverter
+import venus.searchcore.search.ApiQuerydslBindingsFactory
+import venus.searchcore.search.ApiQuerydslMethodArgumentResolver
+import venus.searchcore.search.operator.Customizer
+import venus.searchcore.search.operator.predicate.SearchOperator
 
 @Configuration
 @EnableSpringDataWebSupport
 @ConditionalOnClass(SearchOperator::class)
-class RestMvcConfig(context: ApplicationContext,
+class RestMvcConfig(private val list: List<SearchOperator>,
+                    context: ApplicationContext,
                     @Qualifier("mvcConversionService") conversionService: ObjectFactory<ConversionService>)
     : RepositoryRestMvcConfiguration(context, conversionService) {
 
@@ -53,7 +54,7 @@ class RestMvcConfig(context: ApplicationContext,
     @Bean
     @Qualifier
     override fun defaultConversionService(): DefaultFormattingConversionService {
-        val conversionService =  super.defaultConversionService()
+        val conversionService = super.defaultConversionService()
         conversionService.addConverter(LocalDateCustomConverter())
         conversionService.addConverter(LocalDateTimeCustomConverter())
 
@@ -62,7 +63,7 @@ class RestMvcConfig(context: ApplicationContext,
 
     @Bean
     fun querydslBindingsFactory(): ApiQuerydslBindingsFactory =
-            ApiQuerydslBindingsFactory(SimpleEntityPathResolver.INSTANCE)
+            ApiQuerydslBindingsFactory(SimpleEntityPathResolver.INSTANCE, customizer())
 
     @Bean
     override fun pageableResolver(): HateoasPageableHandlerMethodArgumentResolver {
@@ -76,4 +77,9 @@ class RestMvcConfig(context: ApplicationContext,
         return resolver
     }
 
+    @Bean
+    fun searchPredicates(): Map<String, SearchOperator> = list.map { it.operator to it }.toMap()
+
+    @Bean
+    fun customizer() = Customizer(SimpleEntityPathResolver.INSTANCE, searchPredicates())
 }

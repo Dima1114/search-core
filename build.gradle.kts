@@ -10,8 +10,6 @@ plugins {
 	kotlin("plugin.jpa") version kotlinVersion
 	kotlin("kapt") version kotlinVersion
 	id("java-library")
-	`maven-publish`
-	maven
 }
 
 group = "venus"
@@ -28,11 +26,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-data-rest")
 	implementation("org.springframework.boot:spring-boot-starter-web")
-//	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-//	kapt("com.querydsl:querydsl-apt:4.2.1:jpa")
 	api("com.querydsl:querydsl-apt:4.2.1:jpa")
 	api("com.querydsl:querydsl-jpa:4.2.1")
 	implementation("org.reflections:reflections:0.9.11")
@@ -61,16 +57,4 @@ tasks.getByName<Jar>("jar") {
 
 tasks.getByName<BootJar>("bootJar") {
 	enabled = false
-}
-
-publishing {
-	publications {
-		create<MavenPublication>("maven") {
-			groupId = "venus"
-			artifactId = "search-core"
-			version = "1.0"
-
-			from(components["java"])
-		}
-	}
 }

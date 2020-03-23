@@ -1,11 +1,5 @@
 package venus.searchcore.search.operator
 
-import venus.searchcore.entity.TestEntity
-import venus.searchcore.entity.TestEntity2
-import venus.searchcore.entity.TestEnum
-import venus.searchcore.integration.AbstractTestMvcIntegration
-import venus.searchcore.repository.TestEntity2Repository
-import venus.searchcore.repository.TestEntityRepository
 import org.amshove.kluent.`should be equal to`
 import org.amshove.kluent.`should be`
 import org.amshove.kluent.`should not be`
@@ -18,6 +12,13 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import venus.searchcore.entity.TestEntity
+import venus.searchcore.entity.TestEntity2
+import venus.searchcore.entity.TestEntity3
+import venus.searchcore.entity.TestEnum
+import venus.searchcore.integration.AbstractTestMvcIntegration
+import venus.searchcore.repository.TestEntity2Repository
+import venus.searchcore.repository.TestEntityRepository
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -31,22 +32,37 @@ class SearchOperatorTest : AbstractTestMvcIntegration() {
 
     companion object {
 
-        val testEntity = TestEntity(name = "test_first", float = 1.5F)
-        val testEntity2 = TestEntity(date = LocalDate.now().plusDays(1), name = "test_second", float = 2.5F)
-        val testEntity3 = TestEntity(date = LocalDate.now().plusDays(2), name = "test_third", float = 3.5F)
+        val testEntity = TestEntity(name = "test_first", floatValue = 1.5F)
+        val testEntity2 = TestEntity(date = LocalDate.now().plusDays(1), name = "test_second", floatValue = 2.5F)
+        val testEntity3 = TestEntity(date = LocalDate.now().plusDays(2), name = "test_third", floatValue = 3.5F)
         val testEntity4 = TestEntity(date = LocalDate.now().plusDays(3), name = "fourth")
 
-        val child1 = TestEntity2(date = LocalDateTime.now().minusDays(1), type = TestEnum.JAVA)
-        val child2 = TestEntity2(date = LocalDateTime.now().minusDays(2), num = 2)
-        val child3 = TestEntity2(date = LocalDateTime.now().plusDays(3), num = 3)
+        val entity2Child1 = TestEntity2(date = LocalDateTime.now().minusDays(1).withNano(0), type = TestEnum.JAVA)
+        val entity2child2 = TestEntity2(date = LocalDateTime.now().minusDays(2).withNano(0), num = 2, name = "child_two")
+        val entity2child3 = TestEntity2(date = LocalDateTime.now().plusDays(3).withNano(0), num = 3, name = "child_three")
 //        val child4 = TestEntity2(parent = testEntity4, date = LocalDate.now().plusDays(4), num = 4)
+
+        val entity3Child1 = TestEntity3(name = "list_0", num = 0, date = LocalDate.now().minusDays(1), type = TestEnum.JAVA)
+        val entity3Child2 = TestEntity3(name = "list_1", num = 1, date = LocalDate.now())
+        val entity3Child3 = TestEntity3(name = "list_2", num = 2, date = LocalDate.now().plusDays(1))
+        val entity3Child4 = TestEntity3(name = "list_3", num = 3, date = LocalDate.now().plusDays(2))
+        val entity3Child5 = TestEntity3(name = "list_4", num = 4, date = LocalDate.now().plusDays(3))
     }
 
     @Before
     fun setUp(){
-        testEntity.apply { child = child1 }
-        testEntity2.apply { child = child2 }
-        testEntity3.apply { child = child3 }
+        testEntity.apply {
+            child = entity2Child1
+            childList = mutableListOf(entity3Child1, entity3Child2)
+        }
+        testEntity2.apply {
+            child = entity2child2
+            childList = mutableListOf(entity3Child3, entity3Child4)
+        }
+        testEntity3.apply {
+            child = entity2child3
+            childList = mutableListOf(entity3Child5)
+        }
 
         testEntityRepository.saveAll(mutableListOf(testEntity, testEntity2, testEntity3, testEntity4))
     }
@@ -60,277 +76,13 @@ class SearchOperatorTest : AbstractTestMvcIntegration() {
         //then
         entities.size `should be equal to` 4
         entities[0].child `should not be` null
+        entities[0].childList.size `should be` 2
         entities[1].child `should not be` null
+        entities[1].childList.size `should be` 2
         entities[2].child `should not be` null
+        entities[2].childList.size `should be` 1
         entities[3].child `should be` null
-    }
-
-    @Test
-    fun `test eq operator`(){
-
-        //when
-        var result = performGet("/testEntities?name=test_first")
-        //then
-        result
-//                .andDo(print())
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity.name}')]").exists())
-
-        //when
-        result = performGet("/testEntities?child.type=JAVA")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity.name}')]").exists())
-
-        //when
-        result = performGet("/testEntities?child.num=0")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity.name}')]").exists())
-    }
-
-    @Test
-    fun `test gt operator`() {
-
-        //when
-        var result = performGet("/testEntities?float:gt=2.5")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity3.name}')]").exists())
-
-        //when
-        result = performGet("/testEntities?child.num:gt=2")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity3.name}')]").exists())
-    }
-
-    @Test
-    fun `test lt operator`() {
-
-        //when
-        var result = performGet("/testEntities?float:lt=2.5")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity.name}')]").exists())
-
-        //when
-        result = performGet("/testEntities?child.num:lt=3")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(2))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity.name}')]").exists())
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity2.name}')]").exists())
-    }
-
-    @Test
-    fun `test goe operator`() {
-
-        //when
-        var result = performGet("/testEntities?float:goe=3.5")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity3.name}')]").exists())
-
-        //when
-        result = performGet("/testEntities?child.num:goe=3")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity3.name}')]").exists())
-    }
-
-    @Test
-    fun `test loe operator`() {
-
-        //when
-        var result = performGet("/testEntities?float:loe=2.5")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(2))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity.name}')]").exists())
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity2.name}')]").exists())
-
-        //when
-        result = performGet("/testEntities?child.num:loe=2")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(2))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity.name}')]").exists())
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity2.name}')]").exists())
-    }
-
-    @Test
-    fun `test contains operator`() {
-
-        //when
-        var result = performGet("/testEntities?name:contains=test")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(3))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity.name}')]").exists())
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity2.name}')]").exists())
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity3.name}')]").exists())
-
-        //when
-        result = performGet("/testEntities?name:contains=fourth")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity4.name}')]").exists())
-    }
-
-    @Test
-    fun `test startsWith operator`() {
-
-        //when
-        var result = performGet("/testEntities?name:startsWith=test")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(3))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity.name}')]").exists())
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity2.name}')]").exists())
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity3.name}')]").exists())
-
-        //when
-        result = performGet("/testEntities?name:startsWith=fourth")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity4.name}')]").exists())
-    }
-
-    @Test
-    fun `test isNull operator`() {
-
-        //when
-        var result = performGet("/testEntities?child:isNull")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity4.name}')]").exists())
-
-        //when
-        result = performGet("/testEntities?date:isNull")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity.name}')]").exists())
-
-        //when
-        result = performGet("/testEntities?float:isNull")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity4.name}')]").exists())
-    }
-
-    @Test
-    fun `test isNotNull operator`() {
-
-        //when
-        var result = performGet("/testEntities?child:isNotNull")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(3))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity.name}')]").exists())
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity2.name}')]").exists())
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity3.name}')]").exists())
-
-        //when
-        result = performGet("/testEntities?date:isNotNull")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(3))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity2.name}')]").exists())
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity3.name}')]").exists())
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity4.name}')]").exists())
-
-        //when
-        result = performGet("/testEntities?float:isNotNull")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(3))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity.name}')]").exists())
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity2.name}')]").exists())
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity3.name}')]").exists())
-    }
-
-    @Test
-    fun `test dloe operator`() {
-
-        //given
-        val date = LocalDate.now().plusDays(1)
-        val dateTime = LocalDateTime.now().minusDays(2)
-
-        //when
-        var result = performGet("/testEntities?date:dloe=$date")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity2.name}')]").exists())
-
-//        when
-        result = performGet("/testEntities?child.date:dloe=$dateTime")
-        //then
-        result
-//                .andDo(print())
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity2.name}')]").exists())
-    }
-
-    @Test
-    fun `test dgoe operator`() {
-
-        //given
-        val date = LocalDate.now().plusDays(3)
-        val dateTime = LocalDateTime.now()
-
-        //when
-        var result = performGet("/testEntities?date:dgoe=$date")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity4.name}')]").exists())
-
-//        when
-        result = performGet("/testEntities?child.date:dgoe=$dateTime")
-        //then
-        result
-//                .andDo(print())
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity3.name}')]").exists())
+        entities[3].childList.size `should be` 0
     }
 
     @Test
@@ -351,81 +103,6 @@ class SearchOperatorTest : AbstractTestMvcIntegration() {
     }
 
     @Test
-    fun `test deq operator`() {
-
-        //given
-        val date = LocalDate.now().plusDays(3)
-        val dateTime = testEntity.child!!.date
-
-        //when
-        var result = performGet("/testEntities?date:deq=$date")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity4.name}')]").exists())
-
-//        when
-        result = performGet("/testEntities?child.date:deq=$dateTime")
-        //then
-        result
-//                .andDo(print())
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity.name}')]").exists())
-    }
-
-    @Test
-    fun `test in operator`() {
-
-        //when
-        var result = performGet("/testEntities?name:in=test_first&name:in=test_second")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(2))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity.name}')]").exists())
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity2.name}')]").exists())
-
-        //when
-        result = performGet("/testEntities?float:in=1.5&float:in=2.5")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(2))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity.name}')]").exists())
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity2.name}')]").exists())
-
-
-        //when
-        result = performGet("/testEntities?child.num:in=2&child.num:in=3")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(2))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity2.name}')]").exists())
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity3.name}')]").exists())
-
-        //when
-        result = performGet("/testEntities?child.type:in=JAVA")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity.name}')]").exists())
-
-        //when
-        result = performGet("/testEntities?child.type:in=JAVA&child.type:in=KOTLIN")
-        //then
-        result
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.page.totalElements").value(3))
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity.name}')]").exists())
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity2.name}')]").exists())
-                .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity3.name}')]").exists())
-    }
-
-    @Test
     fun `test sort operator`() {
         //when
         var result = performGet("/testEntities?sort=date,desc")
@@ -439,7 +116,7 @@ class SearchOperatorTest : AbstractTestMvcIntegration() {
                 .andExpect(jsonPath("$._embedded.testEntities[3].name").value(testEntity.name!!))
 
         //when
-        result = performGet("/testEntities?sort=float,desc")
+        result = performGet("/testEntities?sort=floatValue,desc")
         //then
         result
                 .andExpect(status().isOk)
@@ -507,7 +184,7 @@ class SearchOperatorTest : AbstractTestMvcIntegration() {
                 .andExpect(jsonPath("$._embedded.testEntities[?(@.name == '${testEntity4.name}')]").exists())
     }
 
-    private fun performGet(query: String) : ResultActions {
+    protected fun performGet(query: String): ResultActions {
         return mvc.perform(get(query).accept(MediaType.APPLICATION_JSON))
     }
 }

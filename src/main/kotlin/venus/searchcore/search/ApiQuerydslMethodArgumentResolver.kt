@@ -44,7 +44,6 @@ class ApiQuerydslMethodArgumentResolver(private val repositories: Repositories,
         return QuerydslRepositoryInvokerAdapter(invoker, repository as QuerydslPredicateExecutor<Any>, predicate)
     }
 
-
     private fun toMultiValueMap(source: Map<String, Array<String>>): MultiValueMap<String, String> {
 
         val result = LinkedMultiValueMap<String, String>()
